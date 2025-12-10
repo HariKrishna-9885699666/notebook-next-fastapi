@@ -16,9 +16,6 @@ export default function LoginPage() {
                 <LoginForm />
               </div>
             </div>
-            <p className="text-center text-muted mt-3 small">
-              Trouble signing in? Contact support.
-            </p>
           </div>
         </div>
       </div>
