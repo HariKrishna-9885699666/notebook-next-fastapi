@@ -15,6 +15,22 @@ A modern, full-stack Notes App built with **Next.js 16.0.8** (frontend), **FastA
 
 ---
 
+## 📸 Screenshots
+
+### Login & Signup
+<p align="center">
+  <img src="./screenshots/login.png" alt="Login Page" width="45%" />
+  <img src="./screenshots/signup.png" alt="Signup Page" width="45%" />
+</p>
+
+### Dashboard
+![Dashboard](./screenshots/dashboard.png)
+
+### Rich Text Editor
+![Editor with TipTap](./screenshots/editor.png)
+
+---
+
 ## ✨ Features
 
 ### 📝 Notes Management
