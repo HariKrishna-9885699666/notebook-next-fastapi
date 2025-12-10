@@ -1,0 +1,227 @@
+@import "tailwindcss";
+
+@theme {
+  /* Memo color palette - using kebab-case for CSS custom properties */
+  --color-memo-paper: #fffef5;
+  --color-memo-line: #e8e5d9;
+  --color-memo-wood: #8b7355;
+  --color-memo-woodDark: #6b5344;
+  --color-memo-accent: #d4a574;
+  --color-memo-text: #4a4a4a;
+  --color-memo-textLight: #7a7a7a;
+  
+  /* Font families */
+  --font-family-memo: Georgia, serif;
+  --font-family-sans: Inter, system-ui, sans-serif;
+  
+  /* Shadows */
+  --shadow-memo: 0 4px 12px rgb(139 115 85 / 0.15);
+  --shadow-memo-lg: 0 8px 24px rgb(139 115 85 / 0.2);
+}
+
+:root {
+  --memo-paper: #fffef5;
+  --memo-line: #e8e5d9;
+  --memo-wood: #8b7355;
+  --memo-wood-dark: #6b5344;
+  --memo-accent: #d4a574;
+  --memo-text: #4a4a4a;
+  --memo-text-light: #7a7a7a;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  font-family: Inter, system-ui, sans-serif;
+  background-color: #fffef5;
+  color: #4a4a4a;
+}
+
+/* Memo paper background pattern */
+.memo-paper {
+  background-color: #fffef5;
+  background-image: linear-gradient(#e8e5d9 1px, transparent 1px);
+  background-size: 100% 28px;
+  background-position: 0 4px;
+}
+
+/* TipTap Editor Styles */
+.tiptap {
+  min-height: 400px;
+  outline: none;
+  font-family: Georgia, serif;
+  font-size: 16px;
+  line-height: 28px;
+  color: var(--memo-text);
+}
+
+.tiptap p {
+  margin: 0;
+  padding: 0;
+}
+
+.tiptap h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 1rem 0 0.5rem;
+  line-height: 1.2;
+}
+
+.tiptap h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  margin: 0.75rem 0 0.5rem;
+  line-height: 1.3;
+}
+
+.tiptap h3 {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0.25rem;
+  line-height: 1.4;
+}
+
+.tiptap h4 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0.5rem 0 0.25rem;
+}
+
+.tiptap ul,
+.tiptap ol {
+  padding-left: 1.5rem;
+  margin: 0.5rem 0;
+}
+
+.tiptap ul {
+  list-style-type: disc;
+}
+
+.tiptap ol {
+  list-style-type: decimal;
+}
+
+.tiptap li {
+  margin: 0.25rem 0;
+}
+
+.tiptap code {
+  background-color: rgba(139, 115, 85, 0.1);
+  border-radius: 4px;
+  padding: 0.15rem 0.4rem;
+  font-family: "Fira Code", "Consolas", monospace;
+  font-size: 0.9em;
+}
+
+.tiptap pre {
+  background-color: #1e1e1e;
+  color: #d4d4d4;
+  border-radius: 8px;
+  padding: 1rem;
+  margin: 0.75rem 0;
+  overflow-x: auto;
+}
+
+.tiptap pre code {
+  background: none;
+  padding: 0;
+  color: inherit;
+}
+
+.tiptap a {
+  color: var(--memo-wood);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.tiptap a:hover {
+  color: var(--memo-wood-dark);
+}
+
+.tiptap blockquote {
+  border-left: 3px solid var(--memo-accent);
+  padding-left: 1rem;
+  margin: 0.75rem 0;
+  color: var(--memo-text-light);
+  font-style: italic;
+}
+
+.tiptap img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 8px;
+  margin: 1rem 0;
+}
+
+.tiptap hr {
+  border: none;
+  border-top: 1px solid var(--memo-line);
+  margin: 1.5rem 0;
+}
+
+/* Placeholder */
+.tiptap p.is-editor-empty:first-child::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: var(--memo-text-light);
+  pointer-events: none;
+  height: 0;
+}
+
+/* Selection */
+.tiptap ::selection {
+  background-color: rgba(212, 165, 116, 0.3);
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--memo-paper);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--memo-accent);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--memo-wood);
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .tiptap {
+    font-size: 15px;
+    line-height: 26px;
+  }
+}
+
+/* Animation utilities */
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Focus styles */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-memo-accent focus:ring-offset-2 focus:ring-offset-memo-paper;
+}
