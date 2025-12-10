@@ -34,15 +34,16 @@ A modern, full-stack Notes App built with **Next.js 16.0.8** (frontend), **FastA
 - **Keyboard Shortcuts** - Ctrl+B, Ctrl+I, etc.
 
 ### 🖼️ Image Support
-- **Paste Images** - Paste images directly into editor
-- **Drag & Drop** - Drop images to upload
-- **Upload Button** - Traditional file picker
+- **Paste / Drag & Drop / Upload** - Multiple ways to add images
+- **Responsive Defaults** - Inserts at 320px width with responsive max-width
+- **Resize & Move** - Drag handle to resize; drag image to reposition
 - **Supabase Storage** - Secure cloud storage
 
-### 🎨 Memo Notepad UI
-- **Paper Background** - Lined paper aesthetic
-- **Warm Color Palette** - Wooden, paper-inspired colors
-- **Clean Design** - Distraction-free writing
+### 🎨 UI & Navigation
+- **Bootstrap + Tailwind** - Bootstrap 5.3 styling with selective Tailwind utilities
+- **Auth & Settings** - Refreshed Bootstrap cards, forms, and modals
+- **Sidebar** - Live note-title updates while editing; modal-based folder creation
+- **Clean Editor Canvas** - No horizontal lines; rounded, bordered surface
 - **Responsive** - Works on mobile, tablet, desktop
 
 ### 🔐 Authentication
@@ -250,7 +251,7 @@ API documentation available at: `http://localhost:8000/docs`
                           │
 ┌─────────────────────────▼────────────────────────────────────┐
 │                    Next.js Frontend                           │
-│              (React 19 + TipTap + Tailwind)                  │
+│        (React 19 + TipTap + Tailwind + Bootstrap)            │
 │                   localhost:3000                              │
 └─────────────────────────┬────────────────────────────────────┘
                           │
@@ -279,27 +280,27 @@ API documentation available at: `http://localhost:8000/docs`
 
 ## 🎨 UI Theme
 
-The app uses a custom "Memo Notepad" inspired theme:
+Current palette (Bootstrap-friendly):
 
 | Color | Hex | Usage |
 |-------|-----|-------|
-| Paper | `#FFFEF5` | Background |
-| Line | `#E8E5D9` | Borders, lines |
-| Wood | `#8B7355` | Primary actions |
-| Wood Dark | `#6B5344` | Hover states |
-| Accent | `#D4A574` | Highlights |
-| Text | `#4A4A4A` | Primary text |
-| Text Light | `#7A7A7A` | Secondary text |
+| Paper | `#f8f9fa` | Background |
+| Line | `#e9ecef` | Borders |
+| Primary | `#0d6efd` | Primary actions |
+| Primary Dark | `#0b5ed7` | Hover states |
+| Accent | `#6c757d` | Secondary text/borders |
+| Text | `#212529` | Primary text |
+| Text Muted | `#6c757d` | Secondary text |
 
 ---
 
 ## 🛠️ Tech Stack
 
 ### Frontend
-- **Next.js 15.1** - React framework with App Router
-- **React 19** - UI library
-- **TipTap 2.10** - Rich text editor
-- **Tailwind CSS 3.4** - Styling
+- **Next.js 16.0.8** - React framework with App Router
+- **React 19.2** - UI library
+- **TipTap 2.10** - Rich text editor with custom image resize & drag
+- **Tailwind CSS 4.1 + Bootstrap 5.3 (CDN)** - Styling
 - **Lucide React** - Icons
 - **Supabase SSR** - Auth & database client
 
