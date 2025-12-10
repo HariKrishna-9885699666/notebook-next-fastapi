@@ -1,14 +1,16 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css");
 @import "tailwindcss";
 
 @theme {
-  /* Memo color palette - using kebab-case for CSS custom properties */
-  --color-memo-paper: #fffef5;
-  --color-memo-line: #e8e5d9;
-  --color-memo-wood: #8b7355;
-  --color-memo-woodDark: #6b5344;
-  --color-memo-accent: #d4a574;
-  --color-memo-text: #4a4a4a;
-  --color-memo-textLight: #7a7a7a;
+  /* Neutral palette closer to Bootstrap defaults */
+  --color-memo-paper: #f8f9fa;
+  --color-memo-line: #e9ecef;
+  --color-memo-wood: #0d6efd;
+  --color-memo-woodDark: #0b5ed7;
+  --color-memo-accent: #6c757d;
+  --color-memo-text: #212529;
+  --color-memo-textLight: #6c757d;
   
   /* Font families */
   --font-family-memo: Georgia, serif;
@@ -20,13 +22,13 @@
 }
 
 :root {
-  --memo-paper: #fffef5;
-  --memo-line: #e8e5d9;
-  --memo-wood: #8b7355;
-  --memo-wood-dark: #6b5344;
-  --memo-accent: #d4a574;
-  --memo-text: #4a4a4a;
-  --memo-text-light: #7a7a7a;
+  --memo-paper: #f8f9fa;
+  --memo-line: #e9ecef;
+  --memo-wood: #0d6efd;
+  --memo-wood-dark: #0b5ed7;
+  --memo-accent: #6c757d;
+  --memo-text: #212529;
+  --memo-text-light: #6c757d;
 }
 
 * {
@@ -39,15 +41,15 @@ html,
 body {
   max-width: 100vw;
   overflow-x: hidden;
-  font-family: Inter, system-ui, sans-serif;
-  background-color: #fffef5;
-  color: #4a4a4a;
+  font-family: "Inter", system-ui, sans-serif;
+  color: var(--memo-text);
+  background-color: var(--memo-paper);
 }
 
 /* Memo paper background pattern */
 .memo-paper {
-  background-color: #fffef5;
-  background-image: linear-gradient(#e8e5d9 1px, transparent 1px);
+  background-color: var(--memo-paper);
+  background-image: linear-gradient(var(--memo-line) 1px, transparent 1px);
   background-size: 100% 28px;
   background-position: 0 4px;
 }

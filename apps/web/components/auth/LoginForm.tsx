@@ -9,13 +9,34 @@ import { Mail, Lock, Loader2 } from "lucide-react";
 export function LoginForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
+  const validate = () => {
+    const errs: { email?: string; password?: string } = {};
+    if (!email.trim()) {
+      errs.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      errs.email = "Enter a valid email address";
+    }
+
+    if (!password) {
+      errs.password = "Password is required";
+    } else if (password.length < 8) {
+      errs.password = "Use at least 8 characters";
+    }
+
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setLoading(true);
     setError(null);
 
@@ -35,63 +56,69 @@ export function LoginForm() {
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="d-grid gap-3">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+        <div className="alert alert-danger small mb-0" role="alert">
           {error}
         </div>
       )}
 
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-memo-text mb-2">
+      <div className="mb-2">
+        <label htmlFor="email" className="form-label fw-semibold">
           Email
         </label>
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-memo-textLight" />
+        <div className="input-group">
+          <span className="input-group-text bg-white">
+            <Mail className="text-secondary" size={18} />
+          </span>
           <input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={validate}
             placeholder="you@example.com"
-            required
-            className="w-full pl-10 pr-4 py-3 border border-memo-line rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-memo-accent focus:border-transparent transition"
+            className={`form-control ${fieldErrors.email ? "is-invalid" : ""}`}
           />
+          {fieldErrors.email && <div className="invalid-feedback">{fieldErrors.email}</div>}
         </div>
       </div>
 
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-memo-text mb-2">
+      <div className="mb-1">
+        <label htmlFor="password" className="form-label fw-semibold">
           Password
         </label>
-        <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-memo-textLight" />
+        <div className="input-group">
+          <span className="input-group-text bg-white">
+            <Lock className="text-secondary" size={18} />
+          </span>
           <input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onBlur={validate}
             placeholder="••••••••"
-            required
-            minLength={6}
-            className="w-full pl-10 pr-4 py-3 border border-memo-line rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-memo-accent focus:border-transparent transition"
+            minLength={8}
+            className={`form-control ${fieldErrors.password ? "is-invalid" : ""}`}
           />
+          {fieldErrors.password && <div className="invalid-feedback">{fieldErrors.password}</div>}
         </div>
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 px-4 bg-memo-wood text-white font-medium rounded-lg hover:bg-memo-woodDark focus:outline-none focus:ring-2 focus:ring-memo-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+        className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2"
       >
-        {loading && <Loader2 className="w-5 h-5 animate-spin" />}
+        {loading && <Loader2 className="spinner-border spinner-border-sm" />}
         {loading ? "Signing in..." : "Sign in"}
       </button>
 
-      <p className="text-center text-sm text-memo-textLight">
+      <p className="text-center text-muted small mb-0">
         Don&apos;t have an account?{" "}
-        <Link href="/auth/signup" className="text-memo-wood hover:underline font-medium">
-          Sign up
+        <Link href="/auth/signup" className="link-primary fw-semibold">
+          Create one
         </Link>
       </p>
     </form>

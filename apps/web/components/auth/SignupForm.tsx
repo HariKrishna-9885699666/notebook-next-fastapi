@@ -10,14 +10,46 @@ export function SignupForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<{
+    email?: string;
+    password?: string;
+    confirmPassword?: string;
+  }>({});
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const router = useRouter();
   const supabase = createClient();
 
+  const validate = () => {
+    const errs: { email?: string; password?: string; confirmPassword?: string } = {};
+
+    if (!email.trim()) {
+      errs.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
+      errs.email = "Enter a valid email address";
+    }
+
+    if (!password) {
+      errs.password = "Password is required";
+    } else if (password.length < 8) {
+      errs.password = "Use at least 8 characters";
+    }
+
+    if (!confirmPassword) {
+      errs.confirmPassword = "Please confirm your password";
+    } else if (password !== confirmPassword) {
+      errs.confirmPassword = "Passwords must match";
+    }
+
+    setFieldErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+
     setLoading(true);
     setError(null);
 
@@ -47,18 +79,17 @@ export function SignupForm() {
 
   if (success) {
     return (
-      <div className="text-center">
-        <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Mail className="w-8 h-8 text-green-600" />
+      <div className="text-center d-grid gap-3">
+        <div className="mx-auto rounded-3 bg-light border d-flex align-items-center justify-content-center" style={{ width: 80, height: 80 }}>
+          <Mail className="text-primary" size={36} />
         </div>
-        <h2 className="text-xl font-semibold text-memo-text mb-2">Check your email</h2>
-        <p className="text-memo-textLight mb-6">
-          We&apos;ve sent you a confirmation link to <strong>{email}</strong>
-        </p>
-        <Link
-          href="/auth/login"
-          className="text-memo-wood hover:underline font-medium"
-        >
+        <div>
+          <h2 className="h4 fw-bold text-dark mb-2">Check your email</h2>
+          <p className="text-muted mb-0">
+            We sent a confirmation link to <strong>{email}</strong>. Open it to finish signing up.
+          </p>
+        </div>
+        <Link href="/auth/login" className="btn btn-primary w-100">
           Back to login
         </Link>
       </div>
@@ -66,81 +97,92 @@ export function SignupForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6">
+    <form onSubmit={handleSubmit} className="d-grid gap-3">
       {error && (
-        <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-lg text-sm">
+        <div className="alert alert-danger small mb-0" role="alert">
           {error}
         </div>
       )}
 
-      <div>
-        <label htmlFor="email" className="block text-sm font-medium text-memo-text mb-2">
+      <div className="mb-2">
+        <label htmlFor="email" className="form-label fw-semibold">
           Email
         </label>
-        <div className="relative">
-          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-memo-textLight" />
+        <div className="input-group">
+          <span className="input-group-text bg-white">
+            <Mail className="text-secondary" size={18} />
+          </span>
           <input
             id="email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            onBlur={validate}
             placeholder="you@example.com"
-            required
-            className="w-full pl-10 pr-4 py-3 border border-memo-line rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-memo-accent focus:border-transparent transition"
+            className={`form-control ${fieldErrors.email ? "is-invalid" : ""}`}
           />
+          {fieldErrors.email && <div className="invalid-feedback">{fieldErrors.email}</div>}
         </div>
       </div>
 
-      <div>
-        <label htmlFor="password" className="block text-sm font-medium text-memo-text mb-2">
+      <div className="mb-2">
+        <label htmlFor="password" className="form-label fw-semibold">
           Password
         </label>
-        <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-memo-textLight" />
+        <div className="input-group">
+          <span className="input-group-text bg-white">
+            <Lock className="text-secondary" size={18} />
+          </span>
           <input
             id="password"
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            onBlur={validate}
             placeholder="••••••••"
-            required
-            minLength={6}
-            className="w-full pl-10 pr-4 py-3 border border-memo-line rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-memo-accent focus:border-transparent transition"
+            minLength={8}
+            className={`form-control ${fieldErrors.password ? "is-invalid" : ""}`}
           />
+          {fieldErrors.password && <div className="invalid-feedback">{fieldErrors.password}</div>}
         </div>
       </div>
 
-      <div>
-        <label htmlFor="confirmPassword" className="block text-sm font-medium text-memo-text mb-2">
+      <div className="mb-2">
+        <label htmlFor="confirmPassword" className="form-label fw-semibold">
           Confirm Password
         </label>
-        <div className="relative">
-          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-memo-textLight" />
+        <div className="input-group">
+          <span className="input-group-text bg-white">
+            <Lock className="text-secondary" size={18} />
+          </span>
           <input
             id="confirmPassword"
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
+            onBlur={validate}
             placeholder="••••••••"
-            required
-            minLength={6}
-            className="w-full pl-10 pr-4 py-3 border border-memo-line rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-memo-accent focus:border-transparent transition"
+            minLength={8}
+            className={`form-control ${fieldErrors.confirmPassword ? "is-invalid" : ""}`}
           />
+          {fieldErrors.confirmPassword && (
+            <div className="invalid-feedback">{fieldErrors.confirmPassword}</div>
+          )}
         </div>
       </div>
 
       <button
         type="submit"
         disabled={loading}
-        className="w-full py-3 px-4 bg-memo-wood text-white font-medium rounded-lg hover:bg-memo-woodDark focus:outline-none focus:ring-2 focus:ring-memo-accent focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition flex items-center justify-center gap-2"
+        className="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2"
       >
-        {loading && <Loader2 className="w-5 h-5 animate-spin" />}
+        {loading && <Loader2 className="spinner-border spinner-border-sm" />}
         {loading ? "Creating account..." : "Create account"}
       </button>
 
-      <p className="text-center text-sm text-memo-textLight">
+      <p className="text-center text-muted small mb-0">
         Already have an account?{" "}
-        <Link href="/auth/login" className="text-memo-wood hover:underline font-medium">
+        <Link href="/auth/login" className="link-primary fw-semibold">
           Sign in
         </Link>
       </p>

@@ -28,6 +28,11 @@ export function NoteEditor({ note }: NoteEditorProps) {
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">("saved");
   const [showMenu, setShowMenu] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showMoveModal, setShowMoveModal] = useState(false);
+  const [folderOptions, setFolderOptions] = useState<{ id: string; name: string }[]>([]);
+  const [foldersLoading, setFoldersLoading] = useState(false);
+  const [foldersError, setFoldersError] = useState<string | null>(null);
   const router = useRouter();
   const supabase = createClient();
 
@@ -71,44 +76,46 @@ export function NoteEditor({ note }: NoteEditorProps) {
     }
   }, [title, content, note.title, note.content]);
 
-  const handleDelete = async () => {
-    if (!confirm("Are you sure you want to delete this note?")) return;
+  // Broadcast title changes so sidebar can stay in sync without reload
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent("note-title-updated", {
+          detail: { id: note.id, title },
+        })
+      );
+    }
+  }, [title, note.id]);
 
+  const handleDelete = async () => {
     await supabase.from("notes").delete().eq("id", note.id);
     router.push("/");
     router.refresh();
   };
 
-  const handleMoveToFolder = async () => {
-    const { data: folders } = await supabase
+  const loadFoldersAndOpen = async () => {
+    setFoldersLoading(true);
+    setFoldersError(null);
+    const { data: folders, error } = await supabase
       .from("folders")
       .select("id, name")
       .eq("user_id", note.user_id);
 
-    if (!folders || folders.length === 0) {
-      alert("No folders available. Create a folder first.");
+    if (error) {
+      setFoldersError("Could not load folders. Try again.");
+      setFoldersLoading(false);
       return;
     }
 
-    const folderList = folders.map((f, i) => `${i + 1}. ${f.name}`).join("\n");
-    const choice = prompt(`Select folder number:\n0. No folder\n${folderList}`);
-    
-    if (choice === null) return;
-    
-    const choiceNum = parseInt(choice);
-    const folderId = choiceNum === 0 ? null : folders[choiceNum - 1]?.id;
+    setFolderOptions(folders ?? []);
+    setFoldersLoading(false);
+    setShowMoveModal(true);
+  };
 
-    if (choiceNum !== 0 && !folderId) {
-      alert("Invalid selection");
-      return;
-    }
-
-    await supabase
-      .from("notes")
-      .update({ folder_id: folderId })
-      .eq("id", note.id);
-
+  const handleMoveToFolder = async (folderId: string | null) => {
+    await supabase.from("notes").update({ folder_id: folderId }).eq("id", note.id);
     router.refresh();
+    setShowMoveModal(false);
     setShowMenu(false);
   };
 
@@ -134,9 +141,13 @@ export function NoteEditor({ note }: NoteEditorProps) {
   };
 
   return (
-    <div
-      className={`flex flex-col h-full ${isFullscreen ? "fixed inset-0 z-50 bg-memo-paper" : ""}`}
-    >
+    <>
+      <div
+        className={`flex flex-col h-full ${
+          isFullscreen ? "fixed inset-0 z-[1050] bg-white shadow-lg" : ""
+        }`}
+        style={isFullscreen ? { top: 0, left: 0, right: 0, bottom: 0 } : undefined}
+      >
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-memo-line bg-white">
         <input
@@ -156,9 +167,12 @@ export function NoteEditor({ note }: NoteEditorProps) {
               <MoreHorizontal className="w-5 h-5 text-memo-textLight" />
             </button>
             {showMenu && (
-              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-memo-line rounded-lg shadow-memo py-1 z-10">
+              <div className="absolute right-0 top-full mt-1 w-48 bg-white border border-memo-line rounded-lg shadow-memo py-1 z-11">
                 <button
-                  onClick={handleMoveToFolder}
+                  onClick={() => {
+                    setShowMenu(false);
+                    loadFoldersAndOpen();
+                  }}
                   className="w-full flex items-center gap-2 px-4 py-2 text-sm text-memo-text hover:bg-memo-paper transition"
                 >
                   <FolderOpen className="w-4 h-4" />
@@ -175,7 +189,10 @@ export function NoteEditor({ note }: NoteEditorProps) {
                 </button>
                 <hr className="my-1 border-memo-line" />
                 <button
-                  onClick={handleDelete}
+                  onClick={() => {
+                    setShowDeleteConfirm(true);
+                    setShowMenu(false);
+                  }}
                   className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -195,6 +212,116 @@ export function NoteEditor({ note }: NoteEditorProps) {
           onImageUpload={handleImageUpload}
         />
       </div>
-    </div>
+      </div>
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1059 }} />
+          <div
+            className="modal d-block"
+            style={{ zIndex: 1060 }}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content shadow-lg rounded-3 border-0">
+                <div className="modal-header border-0">
+                  <h5 className="modal-title fw-semibold">Delete this note?</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    aria-label="Close"
+                    onClick={() => setShowDeleteConfirm(false)}
+                  />
+                </div>
+                <div className="modal-body pt-0">
+                  <p className="text-muted mb-0">This action cannot be undone.</p>
+                </div>
+                <div className="modal-footer border-0 d-flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary w-50"
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-danger w-50"
+                    onClick={handleDelete}
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Move to folder modal */}
+      {showMoveModal && (
+        <>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1059 }} />
+          <div
+            className="modal d-block"
+            style={{ zIndex: 1060 }}
+            role="dialog"
+            aria-modal="true"
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content shadow-lg rounded-3 border-0">
+                <div className="modal-header border-0">
+                  <h5 className="modal-title fw-semibold">Move to folder</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    aria-label="Close"
+                    onClick={() => setShowMoveModal(false)}
+                  />
+                </div>
+                <div className="modal-body">
+                  {foldersLoading && <p className="text-muted mb-0">Loading folders...</p>}
+                  {foldersError && <p className="text-danger mb-0">{foldersError}</p>}
+
+                  {!foldersLoading && !foldersError && (
+                    <div className="d-grid gap-2">
+                      <button
+                        className="btn btn-outline-primary"
+                        onClick={() => handleMoveToFolder(null)}
+                      >
+                        No folder
+                      </button>
+                      {folderOptions.length === 0 && (
+                        <p className="text-muted mb-0 text-center">No folders yet.</p>
+                      )}
+                      {folderOptions.map((folder) => (
+                        <button
+                          key={folder.id}
+                          className="btn btn-light border text-start"
+                          onClick={() => handleMoveToFolder(folder.id)}
+                        >
+                          {folder.name}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <div className="modal-footer border-0">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary w-100"
+                    onClick={() => setShowMoveModal(false)}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+    </>
   );
 }

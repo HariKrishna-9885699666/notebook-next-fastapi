@@ -24,15 +24,17 @@ export default async function SettingsPage() {
     .order("name", { ascending: true });
 
   return (
-    <div className="flex h-screen overflow-hidden bg-memo-paper">
-      <Sidebar 
-        notes={notes || []} 
-        folders={folders || []} 
+    <div className="flex h-screen overflow-hidden bg-light">
+      <Sidebar
+        notes={notes || []}
+        folders={folders || []}
         currentNoteId={null}
         user={user}
       />
-      <main className="flex-1 flex flex-col overflow-hidden p-8">
-        <SettingsForm user={user} />
+      <main className="flex-1 overflow-y-auto">
+        <div className="container py-5">
+          <SettingsForm user={user} />
+        </div>
       </main>
     </div>
   );

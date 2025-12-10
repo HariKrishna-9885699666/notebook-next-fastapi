@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
@@ -45,10 +45,29 @@ export function Sidebar({ notes, folders, currentNoteId, currentFolderId, user }
   const [searchQuery, setSearchQuery] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
+  const [showFolderModal, setShowFolderModal] = useState(false);
+  const [folderName, setFolderName] = useState("");
+  const [folderError, setFolderError] = useState<string | null>(null);
+  const [folderSaving, setFolderSaving] = useState(false);
+  const [notesState, setNotesState] = useState<Note[]>(notes);
   const router = useRouter();
   const supabase = createClient();
 
-  const filteredNotes = notes.filter(
+  // Listen for title updates from the editor to keep the list in sync without reload
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const custom = event as CustomEvent<{ id: string; title: string }>;
+      const { id, title } = custom.detail || {};
+      if (!id) return;
+      setNotesState((prev) =>
+        prev.map((n) => (n.id === id ? { ...n, title } : n))
+      );
+    };
+    window.addEventListener("note-title-updated", handler as EventListener);
+    return () => window.removeEventListener("note-title-updated", handler as EventListener);
+  }, []);
+
+  const filteredNotes = notesState.filter(
     (note) =>
       note.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       note.content?.toLowerCase().includes(searchQuery.toLowerCase())
@@ -89,17 +108,29 @@ export function Sidebar({ notes, folders, currentNoteId, currentFolderId, user }
   };
 
   const handleCreateFolder = async () => {
-    const name = prompt("Enter folder name:");
-    if (!name) return;
+    if (!folderName.trim()) {
+      setFolderError("Folder name is required");
+      return;
+    }
+
+    setFolderSaving(true);
+    setFolderError(null);
 
     const { error } = await supabase.from("folders").insert({
-      name,
+      name: folderName.trim(),
       user_id: user.id,
     });
 
-    if (!error) {
-      router.refresh();
+    if (error) {
+      setFolderError(error.message || "Unable to create folder");
+      setFolderSaving(false);
+      return;
     }
+
+    setFolderName("");
+    setFolderSaving(false);
+    setShowFolderModal(false);
+    router.refresh();
   };
 
   const handleLogout = async () => {
@@ -143,14 +174,16 @@ export function Sidebar({ notes, folders, currentNoteId, currentFolderId, user }
           </Link>
 
           {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-memo-textLight" />
+          <div className="input-group input-group-sm">
+            <span className="input-group-text bg-white border-memo-line">
+              <Search className="text-secondary" size={16} />
+            </span>
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search notes..."
-              className="w-full pl-9 pr-4 py-2 text-sm border border-memo-line rounded-lg bg-memo-paper focus:outline-none focus:ring-2 focus:ring-memo-accent focus:border-transparent transition"
+              className="form-control border-memo-line text-sm"
             />
           </div>
         </div>
@@ -165,7 +198,11 @@ export function Sidebar({ notes, folders, currentNoteId, currentFolderId, user }
             New Note
           </button>
           <button
-            onClick={handleCreateFolder}
+            onClick={() => {
+              setFolderName("");
+              setFolderError(null);
+              setShowFolderModal(true);
+            }}
             className="p-2 border border-memo-line rounded-lg hover:bg-memo-paper transition"
             title="New Folder"
           >
@@ -274,6 +311,61 @@ export function Sidebar({ notes, folders, currentNoteId, currentFolderId, user }
           </div>
         </div>
       </aside>
+
+      {/* Create Folder Modal */}
+      {showFolderModal && (
+        <>
+          <div className="modal-backdrop fade show" style={{ zIndex: 1059 }} />
+          <div className="modal d-block" style={{ zIndex: 1060 }} role="dialog" aria-modal="true">
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content shadow-lg rounded-3 border-0">
+                <div className="modal-header border-0">
+                  <h5 className="modal-title fw-semibold">Create folder</h5>
+                  <button
+                    type="button"
+                    className="btn-close"
+                    aria-label="Close"
+                    onClick={() => setShowFolderModal(false)}
+                  />
+                </div>
+                <div className="modal-body">
+                  <label className="form-label fw-semibold">Folder name</label>
+                  <input
+                    type="text"
+                    className={`form-control ${folderError ? "is-invalid" : ""}`}
+                    value={folderName}
+                    onChange={(e) => {
+                      setFolderName(e.target.value);
+                      setFolderError(null);
+                    }}
+                    placeholder="e.g. School, Work"
+                    autoFocus
+                  />
+                  {folderError && <div className="invalid-feedback d-block">{folderError}</div>}
+                </div>
+                <div className="modal-footer border-0 d-flex gap-2">
+                  <button
+                    type="button"
+                    className="btn btn-outline-secondary w-50"
+                    onClick={() => setShowFolderModal(false)}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-primary w-50 d-flex align-items-center justify-content-center gap-2"
+                    onClick={handleCreateFolder}
+                    disabled={folderSaving}
+                  >
+                    {folderSaving && <span className="spinner-border spinner-border-sm" />}
+                    Create
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
